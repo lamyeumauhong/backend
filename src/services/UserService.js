@@ -38,47 +38,51 @@ const createUser = (newUser) => {
 const loginUser = (userLogin) => {
     return new Promise(async (resolve, reject) => {
         
-        const { email, password } = userLogin
+        const { email, password } = userLogin;
+        
         try {
-            const checkUser = await User.findOne({
-                email: email
-            })
+            const checkUser = await User.findOne({ email });
+
             if (checkUser === null) {
                 resolve({
                     status: 'ERR',
-                    message: 'The user is not defined'
-                })
+                    message: 'The user is not defined',
+                });
             }
-            const comparePassword = bcrypt.compareSync(password, checkUser.password)
+
+            const comparePassword = bcrypt.compareSync(password, checkUser.password);
 
             if (!comparePassword) {
                 resolve({
                     status: 'ERR',
-                    message: 'The password or user is incorrect'
-                })
+                    message: 'The password or user is incorrect',
+                });
             }
+
             const access_token = await genneralAccessToken({
                 id: checkUser.id,
-                isAdmin: checkUser.isAdmin
-            })
+                isAdmin: checkUser.isAdmin,
+            });
 
             const refresh_token = await genneralRefreshToken({
                 id: checkUser.id,
-                isAdmin: checkUser.isAdmin
-            })
+                isAdmin: checkUser.isAdmin,
+            });
 
             resolve({
                 status: 'OK',
                 message: 'SUCCESS',
-                data: checkUser,
-                access_token,
-                refresh_token
-            })
+                data: {
+                    user: checkUser,
+                    access_token,
+                    refresh_token,
+                },
+            });
         } catch (e) {
-            reject(e)
+            reject(e);
         }
-    })
-}
+    });
+};
 
 const updateUser = (id, data) => {
     return new Promise(async (resolve, reject) => {
