@@ -152,17 +152,18 @@ const getAllProduct = async (limit, page, sort, filter) => {
                     totalPage: Math.ceil(totalProduct / limit)
                 });
             } else {
-                allProduct = await Product.find().limit(limit).skip(page * limit).sort({ createdAt: -1, updatedAt: -1 });
+                allProduct = await Product.find().limit(limit || 0).skip((page || 0) * (limit || 0)).sort({ createdAt: -1, updatedAt: -1 });
+                const totalPage = Math.ceil(totalProduct / (limit || 5)); // Đảm bảo không chia cho 0
                 resolve({
                     status: 'OK',
                     message: 'Success',
                     data: allProduct,
                     total: totalProduct,
-                    pageCurrent: Number(page + 1),
-                    totalPage: Math.ceil(totalProduct / limit)
+                    pageCurrent: Number(page) + 1,
+                    totalPage: totalPage
                 });
             }
-        } catch (e) {
+        }  catch (e) {
             reject(e);
         }
     });
