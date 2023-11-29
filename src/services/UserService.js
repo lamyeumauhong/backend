@@ -37,6 +37,7 @@ const createUser = (newUser) => {
 
 const loginUser = (userLogin) => {
     return new Promise(async (resolve, reject) => {
+        
         const { email, password } = userLogin
         try {
             const checkUser = await User.findOne({
@@ -69,6 +70,7 @@ const loginUser = (userLogin) => {
             resolve({
                 status: 'OK',
                 message: 'SUCCESS',
+                data: checkUser,
                 access_token,
                 refresh_token
             })
