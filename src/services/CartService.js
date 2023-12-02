@@ -33,7 +33,7 @@ const addToCart = async (productId, userId, quantity) => {
 
             return {
                 status: 'OK',
-                message: 'Sản phẩm được thêm vào giỏ hàng thành công',
+                message: 'The product has been successfully added.',
             };
         } catch (error) {
             await session.abortTransaction();
@@ -128,6 +128,12 @@ const updateCartItemQuantity = async (productId, userId, quantity) => {
                 };
             }
             const product = await ProductItem.findOne({ _id: productId });
+            if (quantity > product.countInStock) {
+                return {
+                    status: 'ERR',
+                    message: 'The quantity being purchased is greater than the available quantity in stock.',
+                };
+            }
             cartItem.quantity = quantity;
             cartItem.totalPrice = product.price * quantity; 
 
