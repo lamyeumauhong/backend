@@ -12,12 +12,13 @@ const authMiddleWare = (req, res, next) => {
 
     const token = tokenHeader.split(' ')[1];
     jwt.verify(token, 'access_token', function (err, user) {
-        if (err || !user?.isAdmin) {
+        if (err) {
             return res.status(401).json({
                 message: 'Authentication failed',
                 status: 'ERROR'
             });
         }
+        req.user = user
         next();
     });
 };
@@ -32,6 +33,7 @@ const authUserMiddleWare = (req, res, next) => {
     }
 
     const token = tokenHeader.split(' ')[1];
+
     const userId = req.params.id;
     jwt.verify(token, 'access_token', function (err, user) {
         if (err || (!user?.isAdmin && user?.id !== userId)) {

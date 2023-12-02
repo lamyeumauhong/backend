@@ -1,24 +1,23 @@
 const mongoose = require('mongoose');
 
 const cartItemSchema = new mongoose.Schema({
-    product: {
+    productId: {
         type: mongoose.Schema.Types.ObjectId,
+        required: true,
         ref: 'Product',
-        required: true
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+        ref: 'User', // Thêm ref để thiết lập liên kết với mô hình User
     },
     quantity: {
         type: Number,
-        default: 1
+        required: true,
     },
     totalPrice: {
         type: Number,
-        required: true
-    }
+        required: true,
+    },
 });
 
 const CartItem = mongoose.model('CartItem', cartItemSchema);
