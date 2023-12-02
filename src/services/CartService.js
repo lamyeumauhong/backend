@@ -18,7 +18,7 @@ const addToCart = async (productId, userId, quantity) => {
             if (product) {
                 productPrice = product.price;
             } else {
-                throw new Error('Không tìm thấy sản phẩm');
+                throw new Error('Product not found');
             }
 
             if (existingCartItem) {
