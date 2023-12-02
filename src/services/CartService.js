@@ -109,6 +109,12 @@ const clearCart = async (userId) => {
 };
 const updateCartItemQuantity = async (productId, userId, quantity) => {
     try {
+        if (quantity <= 0) {
+            return {
+                status: 'ERR',
+                message: 'Quantity should be greater than 0',
+            };
+        }
         const session = await CartItem.startSession();
         session.startTransaction();
         
