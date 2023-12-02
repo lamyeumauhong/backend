@@ -61,20 +61,16 @@ const getAllCartItems = async (userId) => {
         throw error;
     }
 };
-
-
-const removeCartItem = async (cartItemId) => {
+const removeProductFromCart = async (productId, userId) => {
     try {
-        const cartItem = await CartItem.findById(cartItemId);
-
+        const cartItem = await CartItem.findOne({ productId: productId, user: userId });
         if (!cartItem) {
             return {
                 status: 'ERR',
-                message: 'CartItem not found',
+                message: 'Product not found in cart',
             };
         }
-
-        await cartItem.remove();
+        await cartItem.deleteOne();
 
         return {
             status: 'OK',
@@ -87,6 +83,8 @@ const removeCartItem = async (cartItemId) => {
         };
     }
 };
+
+
 
 const clearCart = async (userId) => {
     try {
@@ -106,7 +104,7 @@ const clearCart = async (userId) => {
 
 module.exports = {
     addToCart,
-    removeCartItem,
+    removeProductFromCart,
     clearCart,
     getAllCartItems
 };

@@ -31,13 +31,17 @@ const getAllCartItems = async (req, res) => {
     }
 };
 
-const removeCartItem = async (req, res) => {
+const removeFromCart = async (req, res) => {
     try {
-        const { cartItemId } = req.body;
-
+        const { productId } = req.body;
         const userId = req.user.id;
-        const response = await CartService.removeCartItem(cartItemId, userId);
-        res.status(200).json(response);
+        const response = await CartService.removeProductFromCart(productId, userId);
+        
+        if (response.status === 'OK') {
+            res.status(200).json(response);
+        } else {
+            res.status(400).json(response);
+        }
     } catch (error) {
         res.status(500).json({
             status: 'ERR',
@@ -45,6 +49,8 @@ const removeCartItem = async (req, res) => {
         });
     }
 };
+
+
 
 const clearCart = async (req, res) => {
     try {
@@ -61,7 +67,7 @@ const clearCart = async (req, res) => {
 
 module.exports = {
     addToCart,
-    removeCartItem,
+    removeFromCart,
     clearCart,
     getAllCartItems
 };
