@@ -28,7 +28,7 @@ const sendEmailCreateOrder = async (email,orderItems) => {
 
   // send mail with defined transport object
   let info = await transporter.sendMail({
-    from: "hmpzcdymhlixzhue", // sender address
+    from: "vuduong31022@gmail.com", // sender address
     to: email, // list of receivers
     subject: "Bạn đã đặt hàng tại shop", // Subject line
     html: `<div><b>Bạn đã đặt hàng thành công tại shop</b></div> ${listItem}`,

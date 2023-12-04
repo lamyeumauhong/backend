@@ -34,15 +34,15 @@ const createOrder = async (newOrder) => {
             };
         }
 
-        // try {
-        //     await EmailService.sendEmailCreateOrder(email,cartItems);
-        // } catch (emailError) {
-        //     console.error('Lỗi khi gửi email:', emailError);
-        //     return {
-        //         status: 'ERR',
-        //         message: 'Đặt hàng thành công nhưng không thể gửi email thông báo'
-        //     };
-        // }
+        try {
+            await EmailService.sendEmailCreateOrder(email,cartItems);
+        } catch (emailError) {
+            console.error('Lỗi khi gửi email:', emailError);
+            return {
+                status: 'ERR',
+                message: 'Đặt hàng thành công nhưng không thể gửi email thông báo'
+            };
+        }
         await CartService.clearCart({ user: userId });
         return {
             status: 'OK',

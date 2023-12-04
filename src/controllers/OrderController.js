@@ -5,17 +5,26 @@ const User = require("../models/UserModel")
 
 const createOrder = async (req, res) => {
     try {
-        const { paymentMethod, shippingAddress, isPaid, paidAt,totalPrice,itemsPrice} = req.body;
+        const { paymentMethod, shippingAddress, isPaid, paidAt, totalPrice, itemsPrice } = req.body;
         const userId = req.user.id;
-        const email = await User.find({user:userId} );
-        console.log('email',email.email)
+
+        // Fetch user information based on userId
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(400).json({
+                status: 'ERR',
+                message: 'User not found.'
+            });
+        }
+
         const cartItems = await CartItem.find({ user: userId });
         if (!cartItems || cartItems.length === 0) {
             return res.status(400).json({
                 status: 'ERR',
-                message: 'Giỏ hàng trống.Không thể tạo đơn hàng.'
+                message: 'Giỏ hàng trống. Không thể tạo đơn hàng.'
             });
         }
+
         const response = await OrderService.createOrder({
             userId,
             paymentMethod,
@@ -24,7 +33,7 @@ const createOrder = async (req, res) => {
             itemsPrice,
             isPaid,
             paidAt,
-            email: req.user.email 
+            email: user.email 
         });
 
         return res.status(200).json(response);
@@ -98,7 +107,6 @@ const getAllOrder = async (req, res) => {
         const data = await OrderService.getAllOrder()
         return res.status(200).json(data)
     } catch (e) {
-        // console.log(e)
         return res.status(404).json({
             message: e
         })
