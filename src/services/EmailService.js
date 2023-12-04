@@ -9,8 +9,8 @@ const sendEmailCreateOrder = async (email,orderItems) => {
     port: 465,
     secure: true, // true for 465, false for other ports
     auth: {
-      user: process.env.MAIL_ACCOUNT, // generated ethereal user
-      pass: process.env.MAIL_PASSWORD, // generated ethereal password
+      user: "vuduong31022@gmail.com", // generated ethereal user
+      pass:"hmpzcdymhlixzhue" , // generated ethereal password
     },
   });
   transporter.use('compile', inlineBase64({cidPrefix: 'somePrefix_'}));
@@ -28,7 +28,7 @@ const sendEmailCreateOrder = async (email,orderItems) => {
 
   // send mail with defined transport object
   let info = await transporter.sendMail({
-    from: process.env.MAIL_ACCOUNT, // sender address
+    from: "hmpzcdymhlixzhue", // sender address
     to: email, // list of receivers
     subject: "Bạn đã đặt hàng tại shop", // Subject line
     html: `<div><b>Bạn đã đặt hàng thành công tại shop</b></div> ${listItem}`,

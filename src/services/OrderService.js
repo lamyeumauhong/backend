@@ -24,7 +24,7 @@ const createOrder = async (newOrder) => {
             totalPrice, 
             user: userId,
             isPaid,
-            paidAt
+            paidAt: isPaid ? new Date() : null
         });
 
         if (!createdOrder) {

@@ -1,10 +1,14 @@
 const OrderService = require('../services/OrderService')
 const CartItem = require("../models/CartModel")
+const User = require("../models/UserModel")
+
 
 const createOrder = async (req, res) => {
     try {
         const { paymentMethod, shippingAddress, isPaid, paidAt,totalPrice,itemsPrice} = req.body;
         const userId = req.user.id;
+        const email = await User.find({user:userId} );
+        console.log('email',email.email)
         const cartItems = await CartItem.find({ user: userId });
         if (!cartItems || cartItems.length === 0) {
             return res.status(400).json({
