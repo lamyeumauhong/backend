@@ -52,7 +52,6 @@ const addToCart = async (productId, userId, quantity) => {
 const getAllCartItems = async (userId) => {
     try {
         const cartItems = await CartItem.find({ user: userId });
-
         const cartItemsWithProductInfo = await Promise.all(cartItems.map(async (cartItem) => {
             const productInfo = await ProductItem.findById(cartItem.productId);
             return {
@@ -94,13 +93,13 @@ const removeProductFromCart = async (productId, userId) => {
 };
 const clearCart = async (userId) => {
     try {
-        await CartItem.deleteMany({ user: userId });
-
+        await CartItem.deleteMany({ user: userId.user });
         return {
             status: 'OK',
             message: 'Cart cleared successfully',
         };
     } catch (error) {
+    
         return {
             status: 'ERR',
             message: error.message,

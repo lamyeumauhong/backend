@@ -1,26 +1,39 @@
 const OrderService = require('../services/OrderService')
+const CartItem = require("../models/CartModel")
 
 const createOrder = async (req, res) => {
-    try { 
-        const { paymentMethod, itemsPrice, shippingPrice, totalPrice, fullName, address, city, phone } = req.body
-        if (!paymentMethod || !itemsPrice || !shippingPrice || !totalPrice || !fullName || !address || !city || !phone) {
-            return res.status(200).json({
+    try {
+        const { paymentMethod, shippingAddress, isPaid, paidAt,totalPrice,itemsPrice} = req.body;
+        const userId = req.user.id;
+        const cartItems = await CartItem.find({ user: userId });
+        if (!cartItems || cartItems.length === 0) {
+            return res.status(400).json({
                 status: 'ERR',
-                message: 'The input is required'
-            })
+                message: 'Giỏ hàng trống.Không thể tạo đơn hàng.'
+            });
         }
-        const response = await OrderService.createOrder(req.body)
-        return res.status(200).json(response)
+        const response = await OrderService.createOrder({
+            userId,
+            paymentMethod,
+            shippingAddress,
+            totalPrice,
+            itemsPrice,
+            isPaid,
+            paidAt,
+            email: req.user.email 
+        });
+
+        return res.status(200).json(response);
     } catch (e) {
-        return res.status(404).json({
-            message: e
-        })
+        return res.status(500).json({
+            message: e.message || 'Internal Server Error'
+        });
     }
-}
+};
 
 const getAllOrderDetails = async (req, res) => {
     try {
-        const userId = req.params.id
+        const userId = req.user.id;
         if (!userId) {
             return res.status(200).json({
                 status: 'ERR',

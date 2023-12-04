@@ -1,76 +1,62 @@
 const Order = require("../models/OrderProduct")
 const Product = require("../models/ProductModel")
+const CartItem = require("../models/CartModel")
+const CartService = require('./CartService')
 const EmailService = require("../services/EmailService")
 
-const createOrder = (newOrder) => {
-    return new Promise(async (resolve, reject) => {
-        const { orderItems,paymentMethod, itemsPrice, shippingPrice, totalPrice, fullName, address, city, phone,user, isPaid, paidAt,email } = newOrder
-        try {
-            const promises = orderItems.map(async (order) => {
-                const productData = await Product.findOneAndUpdate(
-                    {
-                    _id: order.product,
-                    countInStock: {$gte: order.amount}
-                    },
-                    {$inc: {
-                        countInStock: -order.amount,
-                        selled: +order.amount
-                    }},
-                    {new: true}
-                )
-                if(productData) {
-                    return {
-                        status: 'OK',
-                        message: 'SUCCESS'
-                    }
-                }
-                 else {
-                    return{
-                        status: 'OK',
-                        message: 'ERR',
-                        id: order.product
-                    }
-                }
-            })
-            const results = await Promise.all(promises)
-            const newData = results && results.filter((item) => item.id)
-            if(newData.length) {
-                const arrId = []
-                newData.forEach((item) => {
-                    arrId.push(item.id)
-                })
-                resolve({
-                    status: 'ERR',
-                    message: `San pham voi id: ${arrId.join(',')} khong du hang`
-                })
-            } else {
-                const createdOrder = await Order.create({
-                    orderItems,
-                    shippingAddress: {
-                        fullName,
-                        address,
-                        city, phone
-                    },
-                    paymentMethod,
-                    itemsPrice,
-                    shippingPrice,
-                    totalPrice,
-                    user: user,
-                    isPaid, paidAt
-                })
-                if (createdOrder) {
-                    await EmailService.sendEmailCreateOrder(email,orderItems)
-                    resolve({
-                        status: 'OK',
-                        message: 'success'
-                    })
-                }
-            }
-        } catch (e) {
-            reject(e)
+const createOrder = async (newOrder) => {
+    try {
+        const { userId, paymentMethod, shippingAddress, isPaid, paidAt, email,itemsPrice, totalPrice } = newOrder;
+
+        const cartItems = await CartItem.find({ user: userId });
+        if (!cartItems || cartItems.length === 0) {
+            return {
+                status: 'ERR',
+                message: 'Giỏ hàng trống. Không thể tạo đơn hàng.'
+            };
         }
-    })
-}
+        const createdOrder = await Order.create({
+            orderItems: cartItems,
+            shippingAddress,
+            paymentMethod,
+            shippingPrice: 0,
+            itemsPrice,
+            totalPrice, 
+            user: userId,
+            isPaid,
+            paidAt
+        });
+
+        if (!createdOrder) {
+            return {
+                status: 'ERR',
+                message: 'Không thể tạo đơn hàng'
+            };
+        }
+
+        // try {
+        //     await EmailService.sendEmailCreateOrder(email,cartItems);
+        // } catch (emailError) {
+        //     console.error('Lỗi khi gửi email:', emailError);
+        //     return {
+        //         status: 'ERR',
+        //         message: 'Đặt hàng thành công nhưng không thể gửi email thông báo'
+        //     };
+        // }
+        await CartService.clearCart({ user: userId });
+        return {
+            status: 'OK',
+            message: 'Đặt hàng thành công',
+            orderId: createdOrder._id
+        };
+    } catch (e) {
+        console.error('Lỗi khi tạo đơn hàng:', e);
+        return {
+            status: 'ERR',
+            message: 'Không thể tạo đơn hàng. Vui lòng thử lại sau.'
+        };
+    }
+};
 const getAllOrderDetails = (id) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -83,19 +69,16 @@ const getAllOrderDetails = (id) => {
                     message: 'The order is not defined'
                 })
             }
-
             resolve({
                 status: 'OK',
                 message: 'SUCESSS',
                 data: order
             })
         } catch (e) {
-            // console.log('e', e)
             reject(e)
         }
     })
 }
-
 const getOrderDetails = (id) => {
     return new Promise(async (resolve, reject) => {
         try {
