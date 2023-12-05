@@ -35,7 +35,7 @@ const createOrder = async (newOrder) => {
         }
 
         try {
-            await EmailService.sendEmailCreateOrder(email,cartItems);
+            await EmailService.sendEmailCreateOrder(email, createdOrder.orderItems);
         } catch (emailError) {
             console.error('Lỗi khi gửi email:', emailError);
             return {
@@ -43,7 +43,7 @@ const createOrder = async (newOrder) => {
                 message: 'Đặt hàng thành công nhưng không thể gửi email thông báo'
             };
         }
-        await CartService.clearCart({ user: userId });
+        await CartService.clearCart({ user: userId.user });
         return {
             status: 'OK',
             message: 'Đặt hàng thành công',

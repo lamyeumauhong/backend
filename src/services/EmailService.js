@@ -1,5 +1,6 @@
 const nodemailer = require('nodemailer')
 const dotenv = require('dotenv');
+const CartItem = require("../models/CartModel")
 dotenv.config()
 var inlineBase64 = require('nodemailer-plugin-inline-base64');
 
@@ -17,14 +18,19 @@ const sendEmailCreateOrder = async (email,orderItems) => {
 
   let listItem = '';
   const attachImage = []
-  orderItems.forEach((order) => {
+  const populatedOrderItems = await CartItem.find({ _id: { $in: orderItems } })
+        .populate('productId', 'name price image');
+  populatedOrderItems.forEach((order) => {
     listItem += `<div>
-    <div>
-      Bạn đã đặt sản phẩm <b>${order.name}</b> với số lượng: <b>${order.amount}</b> và giá là: <b>${order.price} VND</b></div>
-      <div>Bên dưới là hình ảnh của sản phẩm</div>
-    </div>`
-    attachImage.push({path: order.image})
-  })
+        <div>
+            Bạn đã đặt sản phẩm <b>${order.productId.name}</b> với số lượng: 
+            <b>${order.quantity}</b> và giá là: <b>${order.totalPrice} VND</b>
+        </div>
+        <div>Bên dưới là hình ảnh của sản phẩm</div>
+        <img src="cid:somePrefix_${order.productId.image}"/>
+    </div>`;
+    attachImage.push({ path: order.productId.image, cid: `somePrefix_${order.productId.image}` });
+});
 
   // send mail with defined transport object
   let info = await transporter.sendMail({
