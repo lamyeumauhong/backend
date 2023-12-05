@@ -15,6 +15,26 @@ const createOrder = async (newOrder) => {
                 message: 'Giỏ hàng trống. Không thể tạo đơn hàng.'
             };
         }
+        for (const cartItem of cartItems) {
+            const product = await Product.findById(cartItem.productId);
+            if (!product || cartItem.quantity > product.countInStock) {
+                return {
+                    status: 'ERR',
+                    message: `Số lượng của sản phẩm ${product.name} trong giỏ hàng vượt quá số lượng tồn kho.`,
+                };
+            }
+        }
+        cartItems.forEach(async (cartItem) => {
+            await Product.findOneAndUpdate(
+                { _id: cartItem.productId },
+                {
+                    $inc: {
+                        countInStock: -cartItem.quantity,
+                        selled: cartItem.quantity,
+                    },
+                }
+            );
+        });
         const createdOrder = await Order.create({
             orderItems: cartItems,
             shippingAddress,
@@ -104,57 +124,62 @@ const getOrderDetails = (id) => {
     })
 }
 
-const cancelOrderDetails = (id, data) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let order = []
-            const promises = data.map(async (order) => {
-                const productData = await Product.findOneAndUpdate(
-                    {
+const cancelOrderDetails = async (id, data) => {
+    try {
+        const promises = data.map(async (order) => {
+            const productData = await Product.findOneAndUpdate(
+                {
                     _id: order.product,
-                    selled: {$gte: order.amount}
-                    },
-                    {$inc: {
+                },
+                {
+                    $inc: {
                         countInStock: +order.amount,
-                        selled: -order.amount
-                    }},
-                    {new: true}
-                )
-                if(productData) {
-                    order = await Order.findByIdAndDelete(id)
-                    if (order === null) {
-                        resolve({
-                            status: 'ERR',
-                            message: 'The order is not defined'
-                        })
-                    }
-                } else {
-                    return{
-                        status: 'OK',
-                        message: 'ERR',
-                        id: order.product
-                    }
-                }
-            })
-            const results = await Promise.all(promises)
-            const newData = results && results[0] && results[0].id
-            
-            if(newData) {
-                resolve({
+                        selled: -order.amount,
+                    },
+                },
+                { new: true }
+            );
+
+            if (!productData) {
+                return {
                     status: 'ERR',
-                    message: `San pham voi id: ${newData} khong ton tai`
-                })
+                    message: 'Sản phẩm không tồn tại',
+                    id: order.product,
+                };
             }
-            resolve({
-                status: 'OK',
-                message: 'success',
-                data: order
-            })
-        } catch (e) {
-            reject(e)
+        });
+
+        const results = await Promise.all(promises);
+        const newData = results.find((result) => result && result.status === 'ERR');
+
+        if (newData) {
+            return {
+                status: 'ERR',
+                message: `Sản phẩm với id: ${newData.id} không tồn tại`
+            };
         }
-    })
-}
+
+        const deletedOrder = await Order.findByIdAndDelete(id);
+        if (!deletedOrder) {
+            return {
+                status: 'ERR',
+                message: 'Đơn hàng không tồn tại'
+            };
+        }
+
+        return {
+            status: 'OK',
+            message: 'Hủy đơn hàng thành công',
+            data: deletedOrder
+        };
+    } catch (e) {
+        console.error('Lỗi khi hủy đơn hàng:', e);
+        return {
+            status: 'ERR',
+            message: 'Không thể hủy đơn hàng. Vui lòng thử lại sau.'
+        };
+    }
+};
 
 const getAllOrder = () => {
     return new Promise(async (resolve, reject) => {
