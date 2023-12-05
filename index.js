@@ -18,13 +18,13 @@ app.use(cookieParser());
 
 routes(app);
 
-mongoose.connect(`mongodb+srv://vuduong31022:${process.env.MONGO_DB}@cluster0.lspmxph.mongodb.net/?retryWrites=true&w=majority`)
-    .then(() => {
-        console.log('Connect DB success')
-    })
-    .catch((err) => {
-        console.log(err)
-    })
+// mongoose.connect(`mongodb+srv://vuduong31022:${process.env.MONGO_DB}@cluster0.lspmxph.mongodb.net/?retryWrites=true&w=majority`)
+//     .then(() => {
+//         console.log('Connect DB success')
+//     })
+//     .catch((err) => {
+//         console.log(err)
+//     })
 
 app.listen(port, () => {
     console.log('Server is running on port:', port);
