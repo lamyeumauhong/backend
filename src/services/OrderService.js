@@ -130,41 +130,34 @@ const getOrderDetails = (id) => {
     })
 }
 
-const cancelOrderDetails = async (id, data) => {
+const cancelOrderDetails = async (id) => {
     try {
-        const promises = data.map(async (order) => {
-            const productData = await Product.findOneAndUpdate(
-                {
-                    _id: order.product,
-                },
-                {
-                    $inc: {
-                        countInStock: +order.amount,
-                        selled: -order.amount,
-                    },
-                },
-                { new: true }
-            );
-
-            if (!productData) {
-                return {
-                    status: 'ERR',
-                    message: 'Sản phẩm không tồn tại',
-                    id: order.product,
-                };
-            }
-        });
-
-        const results = await Promise.all(promises);
-        const newData = results.find((result) => result && result.status === 'ERR');
-
-        if (newData) {
+        const order = await Order.findById(id);
+        if (!order) {
             return {
                 status: 'ERR',
-                message: `Sản phẩm với id: ${newData.id} không tồn tại`
+                message: 'Đơn hàng không tồn tại'
             };
         }
+        // // Lặp qua từng sản phẩm trong đơn hàng để cập nhật lại kho
+        // for (const orderItem of order.orderItems) {
+        //     const product = await Product.findById(orderItem.productId);
+        //     if (!product) {
+        //         return {
+        //             status: 'ERR',
+        //             message: `Sản phẩm với ID ${orderItem.productId} không tồn tại`
+        //         };
+        //     }
+        //     // Cập nhật lại số lượng tồn kho và số lượng đã bán
+        //     await Product.findByIdAndUpdate(orderItem.productId, {
+        //         $inc: {
+        //             countInStock: orderItem.quantity,
+        //             selled: -orderItem.quantity,
+        //         },
+        //     });
+        // }
 
+        // Xóa đơn hàng
         const deletedOrder = await Order.findByIdAndDelete(id);
         if (!deletedOrder) {
             return {
@@ -186,6 +179,7 @@ const cancelOrderDetails = async (id, data) => {
         };
     }
 };
+
 
 const getAllOrder = () => {
     return new Promise(async (resolve, reject) => {
