@@ -11,8 +11,7 @@ const addToCart = async (productId, userId, quantity) => {
         session.startTransaction();
         
         try {
-            const existingCartItem = await CartItem.findOne({ productId: productId, user: userId });
-            
+            const existingCartItem = await CartItem.findOne({ productId: productId, user: userId });   
             let productPrice = 0; 
             const product = await ProductItem.findOne({ _id: productId });
             if (product) {
@@ -20,7 +19,6 @@ const addToCart = async (productId, userId, quantity) => {
             } else {
                 throw new Error('Product not found');
             }
-
             if (existingCartItem) {
                 existingCartItem.quantity += quantity;
                 existingCartItem.totalPrice += productPrice * quantity;
