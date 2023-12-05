@@ -25,19 +25,7 @@ const createOrder = async (newOrder) => {
                 };
             }
         }
-        // Trừ số lượng sản phẩm trong giỏ hàng khỏi số lượng trong kho
-        for (const cartItem of cartItems) {
-            await Product.findOneAndUpdate(
-                { _id: cartItem.productId },
-                {
-                    $inc: {
-                        countInStock: -cartItem.quantity,
-                        selled: cartItem.quantity,
-                    },
-                }
-            );
-        }
-        await CartService.clearCart({ user: userId })
+        
         const createdOrder = await Order.create({
             orderItems: cartItems,
             shippingAddress,
@@ -66,12 +54,26 @@ const createOrder = async (newOrder) => {
                 message: 'Đặt hàng thành công nhưng không thể gửi email thông báo'
             };
         }
+        // Trừ số lượng sản phẩm trong giỏ hàng khỏi số lượng trong kho
+        for (const cartItem of cartItems) {
+            await Product.findOneAndUpdate(
+                { _id: cartItem.productId },
+                {
+                    $inc: {
+                        countInStock: -cartItem.quantity,
+                        selled: cartItem.quantity,
+                    },
+                }
+            );
+        }
+        await CartService.clearCart({ user: userId })
 
         return {
             status: 'OK',
             message: 'Đặt hàng thành công',
             orderId: createdOrder._id
         };
+        
     } catch (e) {
         console.error('Lỗi khi tạo đơn hàng:', e);
         return {
