@@ -51,7 +51,7 @@ const removeFromCart = async (req, res) => {
 const clearCart = async (req, res) => {
     try {
         const userId = req.user.id;
-        const response = await CartService.clearCart({ user: userId });
+        const response=  await CartService.clearCart({ user: userId });
         res.status(200).json(response);
     } catch (error) {
         res.status(500).json({

@@ -6,7 +6,7 @@ const EmailService = require("../services/EmailService")
 
 const createOrder = async (newOrder) => {
     try {
-        const { userId, paymentMethod, shippingAddress, isPaid, paidAt, email,itemsPrice, totalPrice } = newOrder;
+        const { userId, paymentMethod, shippingAddress, isPaid, paidAt, email, itemsPrice, totalPrice } = newOrder;
 
         const cartItems = await CartItem.find({ user: userId });
         if (!cartItems || cartItems.length === 0) {
@@ -15,6 +15,7 @@ const createOrder = async (newOrder) => {
                 message: 'Giỏ hàng trống. Không thể tạo đơn hàng.'
             };
         }
+        // Kiểm tra số lượng trong giỏ hàng so với số lượng tồn kho của sản phẩm
         for (const cartItem of cartItems) {
             const product = await Product.findById(cartItem.productId);
             if (!product || cartItem.quantity > product.countInStock) {
@@ -24,7 +25,8 @@ const createOrder = async (newOrder) => {
                 };
             }
         }
-        cartItems.forEach(async (cartItem) => {
+        // Trừ số lượng sản phẩm trong giỏ hàng khỏi số lượng trong kho
+        for (const cartItem of cartItems) {
             await Product.findOneAndUpdate(
                 { _id: cartItem.productId },
                 {
@@ -34,14 +36,15 @@ const createOrder = async (newOrder) => {
                     },
                 }
             );
-        });
+        }
+        await CartService.clearCart({ user: userId })
         const createdOrder = await Order.create({
             orderItems: cartItems,
             shippingAddress,
             paymentMethod,
             shippingPrice: 0,
             itemsPrice,
-            totalPrice, 
+            totalPrice,
             user: userId,
             isPaid,
             paidAt: isPaid ? new Date() : null
@@ -63,7 +66,7 @@ const createOrder = async (newOrder) => {
                 message: 'Đặt hàng thành công nhưng không thể gửi email thông báo'
             };
         }
-        await CartService.clearCart({ user: userId.user });
+
         return {
             status: 'OK',
             message: 'Đặt hàng thành công',
@@ -77,6 +80,7 @@ const createOrder = async (newOrder) => {
         };
     }
 };
+
 const getAllOrderDetails = (id) => {
     return new Promise(async (resolve, reject) => {
         try {
